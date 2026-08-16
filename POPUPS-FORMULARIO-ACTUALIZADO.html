@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Popups: menos ruido, más dirección. Ordenamos el trabajo para devolverle tiempo a la vida.">
+  <meta name="theme-color" content="#171615">
+  <title>Popups — Menos ruido, más dirección</title>
+  <style>
+    :root {
+      --coal: #171615;
+      --coal-2: #2B2926;
+      --orange: #FF5A36;
+      --orange-soft: #FF7B5E;
+      --sand: #F3EADF;
+      --paper: #FFFDF9;
+      --ink-soft: #71675E;
+      --hairline: rgba(23,22,21,.16);
+      --radius: 28px;
+      --shadow: 0 24px 58px rgba(23,22,21,.16);
+    }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--coal); background:var(--sand); font-family: Arial, Helvetica, sans-serif; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+    a { color:inherit; text-decoration:none; }
+    ::selection { background:var(--orange); color:var(--paper); }
+    .container { width:min(1220px, calc(100% - 56px)); margin:0 auto; }
+    .progress { position:fixed; z-index:100; top:0; left:0; width:0; height:3px; background:var(--orange); transition:width .1s linear; }
+    .kicker { margin:0 0 19px; color:var(--orange); font-size:11px; line-height:1; font-weight:800; letter-spacing:.17em; text-transform:uppercase; }
+    .kicker:before { content:""; display:inline-block; width:24px; height:1px; margin:0 9px 3px 0; background:currentColor; }
+    h1,h2,h3,p { margin-top:0; }
+    h1,h2 { font-family:Georgia, "Times New Roman", serif; font-weight:400; letter-spacing:-.065em; }
+    h2 { font-size:clamp(43px,5.4vw,78px); line-height:.97; }
+    .copy { color:var(--ink-soft); font-size:17px; line-height:1.62; }
+    .section { padding:130px 0; position:relative; }
+
+    /* Navigation */
+    .hero { position:relative; padding:0 0 78px; overflow:hidden; color:var(--sand); background:var(--coal); }
+    .hero:before { content:""; position:absolute; z-index:0; width:720px; height:720px; right:-330px; top:-390px; border:1px solid rgba(243,234,223,.17); border-radius:50%; }
+    .hero:after { content:""; position:absolute; z-index:0; width:420px; height:420px; left:-265px; bottom:-320px; border:1px solid rgba(243,234,223,.13); border-radius:50%; }
+    .nav { position:relative; z-index:10; display:flex; align-items:center; justify-content:space-between; height:91px; border-bottom:1px solid rgba(243,234,223,.17); }
+    .brand { display:inline-flex; align-items:center; gap:11px; color:var(--sand); font-family:Georgia, "Times New Roman", serif; font-size:25px; letter-spacing:-.075em; }
+    .brand-mark { width:37px; height:37px; flex:0 0 37px; }
+    .nav-links { display:flex; align-items:center; gap:28px; margin-left:auto; margin-right:31px; }
+    .nav-links a { color:rgba(243,234,223,.72); font-size:13px; font-weight:700; transition:color .2s; }
+    .nav-links a:hover { color:var(--sand); }
+    .nav-button, .button { background:transparent; display:inline-flex; align-items:center; justify-content:center; gap:10px; font-weight:800; transition:transform .2s, background .2s, color .2s, box-shadow .2s; }
+    .nav-button { background:transparent; cursor:pointer; font:inherit; min-height:44px; padding:0 17px; border:1px solid rgba(243,234,223,.38); border-radius:999px; color:var(--sand); font-size:13px; }
+    .nav-button:hover { border-color:var(--orange); background:var(--orange); transform:translateY(-2px); }
+
+    /* Hero */
+    .hero-grid { position:relative; z-index:1; display:grid; grid-template-columns:.91fr 1.09fr; gap:4%; align-items:center; min-height:670px; padding-top:54px; }
+    .hero-copy { padding-bottom:30px; }
+    .hero h1 { max-width:660px; margin:0 0 28px; color:var(--sand); font-size:clamp(62px,7.25vw,108px); line-height:.87; }
+    .hero h1 em { color:var(--orange); font-style:italic; }
+    .hero-intro { max-width:466px; margin:0 0 32px; color:rgba(243,234,223,.72); font-size:17px; line-height:1.65; }
+    .hero-buttons { display:flex; gap:13px; flex-wrap:wrap; }
+    .button { min-height:56px; padding:0 21px; border-radius:999px; border:1px solid transparent; font-size:14px; }
+    .button.primary { color:var(--paper); background:var(--orange); }
+    .button.primary:hover { transform:translateY(-3px); box-shadow:0 12px 24px rgba(255,90,54,.25); }
+    .button.ghost { color:var(--sand); border-color:rgba(243,234,223,.4); }
+    .button.ghost:hover { border-color:var(--sand); background:rgba(255,255,255,.07); transform:translateY(-2px); }
+    .button .arrow { font-size:19px; line-height:0; transition:transform .2s; }
+    .button:hover .arrow { transform:translate(3px,-2px); }
+    .hero-note { display:flex; align-items:center; gap:9px; margin:35px 0 0; color:rgba(243,234,223,.57); font-size:12px; font-weight:700; }
+    .hero-note i { display:block; width:8px; height:8px; border-radius:50%; background:var(--orange); box-shadow:0 0 0 5px rgba(255,90,54,.16); }
+
+    /* Hero art */
+    .hero-art { position:relative; min-height:520px; }
+    .art-panel { position:absolute; right:3%; top:4px; width:min(495px, 100%); height:493px; overflow:hidden; border-radius:36px; background:var(--orange); box-shadow:var(--shadow); }
+    .art-panel:before { content:""; position:absolute; width:584px; height:584px; border:1px solid rgba(23,22,21,.3); border-radius:50%; right:-305px; top:-154px; }
+    .art-panel:after { content:""; position:absolute; width:344px; height:344px; border:1px solid rgba(23,22,21,.27); border-radius:50%; left:-219px; bottom:-198px; }
+    .art-label { position:absolute; z-index:2; left:29px; top:26px; padding:7px 10px; border:1px solid rgba(23,22,21,.34); border-radius:999px; color:var(--coal); font-size:10px; font-weight:900; letter-spacing:.09em; }
+    .art-title { position:absolute; z-index:2; left:31px; bottom:27px; max-width:210px; color:var(--coal); font-family:Georgia, "Times New Roman", serif; font-size:29px; letter-spacing:-.07em; line-height:.96; }
+    .art-title em { font-style:italic; }
+    .art-orbit { position:absolute; z-index:1; width:340px; height:340px; left:72px; top:78px; border:1px dashed rgba(23,22,21,.47); border-radius:50%; animation:rotate 28s linear infinite; }
+    .art-orbit:before, .art-orbit:after { content:""; position:absolute; display:block; border-radius:50%; }
+    .art-orbit:before { width:16px; height:16px; top:1px; left:68px; background:var(--sand); } .art-orbit:after { width:10px; height:10px; right:42px; bottom:6px; background:var(--coal); }
+    .panel-popup { position:absolute; z-index:3; color:var(--coal); box-shadow:0 17px 25px rgba(23,22,21,.18); }
+    .panel-popup .topline { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .panel-popup .dots { display:flex; gap:4px; }.panel-popup .dots i { width:5px; height:5px; display:block; border-radius:50%; background:currentColor; opacity:.5; }
+    .panel-popup small { font-size:9px; font-weight:900; letter-spacing:.07em; text-transform:uppercase; }
+    .panel-popup strong { display:block; font-size:16px; line-height:1.03; letter-spacing:-.045em; }
+    .popup-one { width:193px; height:153px; left:73px; top:111px; padding:16px; border-radius:20px; background:var(--paper); transform:rotate(-8deg); animation:floatOne 6s ease-in-out infinite; }
+    .popup-one .meter { display:flex; gap:5px; align-items:end; height:34px; margin-top:14px; }.popup-one .meter i { display:block; flex:1; height:8px; border-radius:5px; background:rgba(23,22,21,.13); }.popup-one .meter i:nth-child(2){height:19px;background:var(--orange);}.popup-one .meter i:nth-child(3){height:30px;background:var(--coal);}
+    .popup-two { width:198px; height:140px; right:38px; top:202px; padding:16px; border-radius:20px; color:var(--sand); background:var(--coal); transform:rotate(9deg); animation:floatTwo 7s ease-in-out infinite; }
+    .popup-two small { color:var(--orange); }.popup-two .lines { display:grid; gap:7px; margin-top:14px; }.popup-two .lines i { display:block; height:5px; border-radius:9px; background:rgba(243,234,223,.2); }.popup-two .lines i:nth-child(1){width:87%;background:var(--sand);}.popup-two .lines i:nth-child(2){width:64%;}.popup-two .lines i:nth-child(3){width:74%;}
+    .popup-three { display:flex; align-items:center; gap:9px; right:83px; bottom:34px; padding:10px 14px; border-radius:999px; color:var(--paper); background:var(--coal); font-size:11px; font-weight:800; transform:rotate(-4deg); animation:floatThree 5s ease-in-out infinite; }.popup-three i{width:8px;height:8px;border-radius:50%;background:var(--orange);}
+    .art-asterisk { position:absolute; z-index:3; top:74px; right:59px; color:var(--sand); font-size:44px; font-weight:400; line-height:1; animation:spinPulse 4s ease-in-out infinite; }
+
+    .tape { overflow:hidden; border-bottom:1px solid var(--hairline); background:var(--paper); }
+    .tape-track { display:flex; width:max-content; animation:tape 26s linear infinite; }
+    .tape-track span { display:inline-flex; align-items:center; gap:19px; padding:18px 11px; color:var(--coal); font-family:Georgia, "Times New Roman", serif; font-size:21px; letter-spacing:-.04em; white-space:nowrap; }.tape-track b { color:var(--orange); font-family:Arial,sans-serif; font-size:20px; }
+
+    /* Intro */
+    .intro-layout { display:grid; grid-template-columns:.8fr 1.2fr; gap:8%; align-items:start; }
+    .side-label { padding-top:14px; color:var(--ink-soft); font-size:12px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }.side-label:before { content:"01"; display:block; margin-bottom:13px; color:var(--orange); font-size:11px; }
+    .statement { max-width:840px; margin:0; font-family:Georgia, "Times New Roman", serif; font-size:clamp(46px, 5.4vw, 78px); font-weight:400; letter-spacing:-.072em; line-height:.98; }
+    .statement em { color:var(--orange); font-style:italic; }
+    .intro-bottom { display:grid; grid-template-columns:1fr 1fr; gap:35px; margin:45px 0 0; padding-top:23px; border-top:1px solid var(--hairline); }.intro-bottom p { margin:0; color:var(--ink-soft); font-size:15px; line-height:1.65; }.intro-bottom p strong { color:var(--coal); }
+
+    /* System */
+    .system { color:var(--sand); background:var(--coal); overflow:hidden; }
+    .system:before { content:""; position:absolute; width:660px; height:660px; right:-430px; top:20px; border:1px solid rgba(243,234,223,.15); border-radius:50%; }
+    .system-grid { position:relative; z-index:1; display:grid; grid-template-columns:.9fr 1.1fr; gap:9%; align-items:center; }
+    .system h2 { max-width:552px; margin-bottom:28px; }.system .copy { max-width:450px; color:rgba(243,234,223,.67); }.system .kicker { color:var(--orange); }
+    .process-visual { min-height:535px; position:relative; padding:26px 0; }
+    .process-line { position:absolute; width:1px; top:0; bottom:0; left:45px; background:rgba(243,234,223,.31); }.process-line:after { content:""; position:absolute; left:-3px; top:0; width:7px; height:7px; border-radius:50%; background:var(--orange); box-shadow:0 0 0 6px rgba(255,90,54,.12); animation:lineMove 4.5s ease-in-out infinite; }
+    .process-row { position:relative; min-height:132px; padding:0 0 0 92px; display:flex; align-items:center; }.process-row:before { content:attr(data-number); position:absolute; top:50%; left:25px; color:var(--orange); font-size:11px; font-weight:900; letter-spacing:.07em; transform:translateY(-50%); }.process-row:after { content:""; position:absolute; top:50%; left:41px; width:9px; height:9px; border-radius:50%; background:var(--sand); transform:translateY(-50%); }
+    .process-item { width:100%; padding:21px 23px; border:1px solid rgba(243,234,223,.18); border-radius:18px; background:rgba(243,234,223,.045); transition:transform .25s, background .25s; }.process-item:hover { transform:translateX(8px); background:rgba(243,234,223,.09); }.process-item h3 { margin:0 0 7px; color:var(--sand); font-size:22px; letter-spacing:-.05em; }.process-item p { margin:0; color:rgba(243,234,223,.65); font-size:13px; line-height:1.48; }
+
+    /* Audience */
+    .audience-top { display:flex; justify-content:space-between; align-items:end; gap:40px; margin-bottom:58px; }.audience-top h2 { max-width:730px; margin:0; }.audience-top .copy { max-width:350px; margin:0 0 5px; }
+    .audience-quote { padding:47px 4.3%; position:relative; border-top:1px solid var(--hairline); border-bottom:1px solid var(--hairline); }.audience-quote:before { content:"“"; position:absolute; left:4%; top:4px; color:var(--orange); font-family:Georgia,serif; font-size:100px; line-height:1; }.audience-quote p { position:relative; max-width:960px; margin:0; padding-left:70px; font-family:Georgia,serif; font-size:clamp(31px,3.8vw,55px); line-height:1.05; letter-spacing:-.06em; }.audience-quote p em { color:var(--orange); font-style:italic; }
+    .audience-meta { display:flex; gap:11px; align-items:center; margin:25px 0 0 70px; color:var(--ink-soft); font-size:12px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }.audience-meta i { width:8px; height:8px; border-radius:50%; background:var(--orange); }
+
+    /* Results */
+    .results { padding-bottom:0; }
+    .result-grid { display:grid; grid-template-columns:repeat(3,1fr); border-top:1px solid var(--hairline); }.result { padding:32px 28px 72px 0; border-right:1px solid var(--hairline); }.result:not(:first-child){ padding-left:28px; }.result:last-child{ border-right:0; }.result-number { display:block; margin-bottom:66px; color:var(--orange); font-size:12px; font-weight:900; letter-spacing:.1em; }.result h3 { max-width:275px; margin:0 0 13px; font-family:Georgia,serif; font-size:31px; font-weight:400; letter-spacing:-.065em; line-height:.98; }.result p { max-width:293px; margin:0; color:var(--ink-soft); font-size:14px; line-height:1.6; }
+
+    /* Contact */
+    .contact { padding:94px 0 0; background:var(--sand); }.contact-card { position:relative; overflow:hidden; padding:71px 7%; color:var(--sand); background:var(--orange); }.contact-card:before { content:""; position:absolute; width:520px; height:520px; left:-330px; bottom:-375px; border:1px solid rgba(23,22,21,.22); border-radius:50%; }.contact-card:after { content:""; position:absolute; width:430px; height:430px; right:-310px; top:-300px; border:1px solid rgba(23,22,21,.22); border-radius:50%; }.contact-card > * { position:relative; z-index:1; }.contact-card .kicker { color:var(--coal); }.contact-card h2 { max-width:820px; margin:0 0 23px; color:var(--coal); font-size:clamp(48px,5.9vw,82px); }.contact-card p { max-width:520px; margin:0 0 30px; color:rgba(23,22,21,.73); font-size:17px; line-height:1.62; }.contact-card .button { color:var(--sand); background:var(--coal); }.contact-card .button:hover { transform:translateY(-3px); box-shadow:0 12px 24px rgba(23,22,21,.19); }.email { display:inline-block; margin:25px 0 0; color:var(--coal); font-size:13px; font-weight:800; }.email:hover { text-decoration:underline; }
+
+    footer { background:var(--sand); }.footer { display:flex; justify-content:space-between; align-items:center; gap:20px; padding:27px 0 39px; }.footer-brand { display:inline-flex; align-items:center; gap:8px; font-family:Georgia,serif; font-size:22px; letter-spacing:-.075em; }.footer-brand .brand-mark{width:31px;height:31px;flex-basis:31px;}.footer-copy { color:var(--ink-soft); font-size:12px; font-weight:700; }.footer a:last-child { font-size:13px; font-weight:800; }.footer a:last-child:hover { text-decoration:underline; }
+
+    [data-reveal] { opacity:0; transform:translateY(24px); transition:opacity .75s ease, transform .75s cubic-bezier(.18,.8,.25,1); }.is-visible { opacity:1; transform:none; } [data-delay="1"]{transition-delay:.12s;}[data-delay="2"]{transition-delay:.24s;}
+    @keyframes rotate { to { transform:rotate(360deg); } } @keyframes floatOne { 0%,100%{transform:rotate(-8deg) translateY(0);}50%{transform:rotate(-5deg) translateY(-15px);} } @keyframes floatTwo { 0%,100%{transform:rotate(9deg) translateY(0);}50%{transform:rotate(5deg) translateY(-18px);} } @keyframes floatThree { 0%,100%{transform:rotate(-4deg) translateY(0);}50%{transform:rotate(0deg) translateY(-10px);} } @keyframes spinPulse { 0%,100%{transform:rotate(0) scale(.9);opacity:.75;}50%{transform:rotate(65deg) scale(1.12);opacity:1;} } @keyframes tape { to{transform:translateX(-50%);} } @keyframes lineMove { 0%,100%{top:0;}50%{top:calc(100% - 7px);} } 
+
+    @media(max-width:720px){
+      .lead-modal { align-items:end; padding:0; }.lead-dialog { grid-template-columns:1fr; max-height:calc(100vh - 14px); border-radius:26px 26px 0 0; }.modal-aside { min-height:202px; padding:30px 29px 25px; }.modal-aside h2 { max-width:390px; font-size:37px; }.modal-aside .aside-pulse { margin-top:17px; }.aside-quote { display:none; }.lead-form-wrap { min-height:0; padding:29px 25px 25px; }.modal-close { top:12px; right:12px; }.form-step legend { font-size:34px; }.choice-grid,.field-grid { grid-template-columns:1fr; }.choice span { min-height:57px; }.form-actions { padding-top:18px; }.form-privacy { margin-top:12px; }
+    }
+    @media(max-width:900px){
+      .hero-grid,.intro-layout,.system-grid { grid-template-columns:1fr; }.hero-grid{padding-top:42px;min-height:auto;gap:22px;}.hero-copy{padding:35px 0 0;}.hero-art{max-width:560px;width:100%;margin:0 auto;}.nav-links{display:none;}.hero h1{max-width:710px;}.intro-layout{gap:28px;}.side-label{padding-top:0;}.system-grid{gap:44px;}.audience-top{align-items:start;flex-direction:column;gap:9px;}.result h3{font-size:28px;}.contact{padding-top:74px;}
+    }
+    @media(max-width:560px){
+      .container{width:min(100% - 32px,540px);}.nav{height:75px;}.brand{font-size:23px;}.brand-mark{width:33px;height:33px;flex-basis:33px;}.nav-button{padding:0 13px;min-height:40px;font-size:12px;}.nav-button .full{display:none;}.nav-button .short{display:inline!important;}.hero{padding-bottom:56px;}.hero-grid{padding-top:23px;}.hero h1{font-size:clamp(55px,16vw,76px);}.hero-intro{font-size:16px;}.button{width:100%;}.hero-art{min-height:392px;transform:scale(.88);transform-origin:center top;margin-bottom:-48px;}.art-panel{left:50%;right:auto;width:465px;transform:translateX(-50%);height:445px;}.art-orbit{transform:scale(.86);transform-origin:center;left:58px;top:62px;}.popup-one{left:50px;top:95px;}.popup-two{right:21px;top:183px;}.popup-three{right:49px;bottom:27px;}.art-title{font-size:26px;}.art-asterisk{right:40px;top:60px;}.section{padding:88px 0;}h2{font-size:clamp(40px,12.5vw,57px);}.statement{font-size:clamp(40px,12.3vw,55px);}.intro-bottom{grid-template-columns:1fr;gap:15px;margin-top:31px;}.process-visual{min-height:496px;}.process-row{padding-left:75px;}.process-line{left:30px;}.process-row:before{left:8px;}.process-row:after{left:26px;}.process-item{padding:18px;}.process-item h3{font-size:20px;}.audience-quote{padding:32px 0;}.audience-quote:before{left:0;font-size:75px;}.audience-quote p{padding-left:36px;font-size:clamp(30px,9.7vw,43px);}.audience-meta{margin-left:36px;}.result-grid{grid-template-columns:1fr;}.result,.result:not(:first-child){padding:26px 0 43px;border-right:0;border-bottom:1px solid var(--hairline);}.result-number{margin-bottom:31px;}.result:last-child{border-bottom:0;}.contact-card{padding:53px 25px;}.contact-card p{font-size:16px;}.footer{align-items:start;flex-wrap:wrap;}.footer-copy{order:3;width:100%;}
+    }
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important;}}
+
+    /* Friendly lead popup */
+    body.modal-open { overflow: hidden; }
+    .lead-modal { position:fixed; z-index:200; inset:0; display:grid; place-items:center; padding:22px; visibility:hidden; opacity:0; transition:opacity .28s ease, visibility .28s; }
+    .lead-modal.is-open { visibility:visible; opacity:1; }
+    .modal-backdrop { position:absolute; inset:0; background:rgba(23,22,21,.78); backdrop-filter:blur(9px); -webkit-backdrop-filter:blur(9px); }
+    .lead-dialog { position:relative; z-index:1; display:grid; grid-template-columns:.72fr 1.28fr; width:min(930px,100%); max-height:min(760px,calc(100vh - 44px)); overflow:auto; border-radius:30px; color:var(--coal); background:var(--paper); box-shadow:0 30px 90px rgba(0,0,0,.36); transform:translateY(18px) scale(.985); transition:transform .32s cubic-bezier(.18,.8,.25,1); }
+    .lead-modal.is-open .lead-dialog { transform:none; }
+    .modal-close { position:absolute; z-index:3; top:17px; right:17px; display:grid; place-items:center; width:39px; height:39px; border:1px solid rgba(23,22,21,.18); border-radius:50%; color:var(--coal); background:rgba(255,253,249,.88); cursor:pointer; font-size:24px; line-height:1; transition:background .2s, transform .2s; }
+    .modal-close:hover { background:var(--orange); transform:rotate(90deg); }
+    .modal-aside { position:relative; display:flex; flex-direction:column; justify-content:space-between; min-height:580px; padding:42px 37px; overflow:hidden; color:var(--coal); background:var(--orange); }
+    .modal-aside:before { content:""; position:absolute; width:360px; height:360px; right:-240px; top:-100px; border:1px solid rgba(23,22,21,.24); border-radius:50%; }.modal-aside:after { content:""; position:absolute; width:410px; height:410px; left:-276px; bottom:-270px; border:1px solid rgba(23,22,21,.2); border-radius:50%; }
+    .modal-aside > * { position:relative; z-index:1; }.modal-aside .kicker { margin-bottom:18px; color:var(--coal); }.modal-aside h2 { max-width:290px; margin:0; font-size:clamp(37px,4vw,52px); line-height:.93; }.modal-aside h2 em { font-style:italic; }
+    .aside-pulse { display:flex; align-items:center; gap:10px; margin-top:35px; color:rgba(23,22,21,.76); font-size:12px; font-weight:800; }.aside-pulse i { display:block; width:9px; height:9px; border-radius:50%; background:var(--paper); box-shadow:0 0 0 6px rgba(255,253,249,.2); }
+    .aside-quote { max-width:225px; margin:0; font-family:Georgia,serif; font-size:19px; line-height:1.1; letter-spacing:-.045em; }.aside-quote span { display:block; margin-top:12px; font-family:Arial,sans-serif; font-size:10px; font-weight:900; letter-spacing:.11em; text-transform:uppercase; }
+    .lead-form-wrap { padding:43px 46px 34px; display:flex; flex-direction:column; min-height:580px; }.modal-progress-top { display:flex; align-items:center; justify-content:space-between; gap:15px; margin-bottom:25px; color:var(--ink-soft); font-size:11px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; }.progress-dots { display:flex; gap:6px; }.progress-dots i { width:18px; height:4px; border-radius:99px; background:#E5DDD4; transition:background .25s, width .25s; }.progress-dots i.active { width:29px; background:var(--orange); }
+    .lead-form { display:flex; flex:1; flex-direction:column; }.form-step { display:none; animation:formIn .3s ease both; }.form-step.active { display:block; }.form-step legend { width:100%; padding:0; margin:0 0 10px; font-family:Georgia,serif; font-size:clamp(31px,3vw,42px); font-weight:400; letter-spacing:-.065em; line-height:.98; }.form-step .step-copy { margin:0 0 25px; color:var(--ink-soft); font-size:14px; line-height:1.53; }.form-step fieldset { border:0; padding:0; margin:0; min-width:0; }
+    .field-grid { display:grid; grid-template-columns:1fr 1fr; gap:13px; }.field { display:grid; gap:8px; margin-bottom:16px; }.field label,.choice-question { color:#514940; font-size:12px; font-weight:800; }.field input,.field select,.field textarea { width:100%; padding:13px 14px; border:1px solid #D9CFC4; border-radius:12px; outline:0; color:var(--coal); background:#FFFDF9; font:inherit; font-size:14px; transition:border .2s,box-shadow .2s; }.field textarea { min-height:132px; resize:vertical; line-height:1.48; }.field input:focus,.field select:focus,.field textarea:focus { border-color:var(--orange); box-shadow:0 0 0 4px rgba(255,90,54,.13); }.field input::placeholder,.field textarea::placeholder { color:#A79B91; }
+    .choice-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:13px; }.choice { position:relative; display:block; cursor:pointer; }.choice input { position:absolute; opacity:0; pointer-events:none; }.choice span { display:flex; min-height:70px; align-items:center; padding:12px 13px; border:1px solid #D9CFC4; border-radius:14px; color:#50483F; font-size:13px; font-weight:750; line-height:1.3; transition:border .2s,background .2s,transform .2s; }.choice span:before { content:""; flex:0 0 10px; width:10px; height:10px; margin-right:9px; border:1px solid #B7A99C; border-radius:50%; background:var(--paper); }.choice:hover span { transform:translateY(-2px); border-color:#B7A99C; }.choice input:checked + span { border-color:var(--coal); color:var(--coal); background:#F8E7E1; }.choice input:checked + span:before { border:3px solid var(--orange); background:var(--paper); }
+    .form-error { min-height:19px; margin:13px 0 0; color:#C73C21; font-size:12px; font-weight:750; }.form-actions { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:auto; padding-top:25px; }.form-actions .button { min-height:49px; padding:0 18px; border-radius:999px; border:0; cursor:pointer; font-size:13px; }.form-actions .next,.form-actions .submit { margin-left:auto; color:var(--paper); background:var(--coal); }.form-actions .next:hover,.form-actions .submit:hover { color:var(--paper); background:var(--orange); transform:translateY(-2px); }.form-actions .back { color:var(--ink-soft); background:transparent; }.form-actions .back:hover { color:var(--coal); }.form-privacy { margin:16px 0 0; color:#94877C; font-size:10px; line-height:1.45; }.form-privacy a { color:var(--coal); text-decoration:underline; }
+    .form-success { display:none; align-items:center; justify-content:center; flex:1; text-align:center; }.form-success.show { display:flex; }.success-inner { max-width:375px; }.success-mark { display:grid; place-items:center; width:61px; height:61px; margin:0 auto 21px; border-radius:50%; color:var(--paper); background:var(--orange); font-size:31px; }.success-inner h2 { margin:0 0 14px; font-family:Georgia,serif; font-size:44px; letter-spacing:-.065em; line-height:.95; }.success-inner p { margin:0 0 25px; color:var(--ink-soft); font-size:15px; line-height:1.55; }.success-inner .button { color:var(--paper); background:var(--coal); border:0; cursor:pointer; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @keyframes formIn { from { opacity:0; transform:translateX(13px); } to { opacity:1; transform:none; } }
+
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"></div>
+  <main>
+    <section id="inicio" class="hero">
+      <div class="container">
+        <nav class="nav" aria-label="Navegación principal">
+          <a class="brand" href="#inicio" aria-label="Popups, inicio">
+            <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="18" fill="#FF5A36"/><path d="M17 14h19c10 0 17 6 17 16s-7 16-17 16h-8v7H17V14Zm11 10v12h7c4 0 6-2 6-6s-2-6-6-6h-7Z" fill="#171615"/><rect x="36" y="33" width="18" height="18" rx="6" fill="#F3EADF"/><path d="M45 37v9M41 42l4-5 4 5" fill="none" stroke="#171615" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>Popups</span>
+          </a>
+          <div class="nav-links"><a href="#problema">La idea</a><a href="#como">Cómo funciona</a><a href="#para-quien">Para quién</a></div>
+          <button class="nav-button js-open-lead" type="button"><span class="full">Empecemos</span><span class="short" style="display:none">Contacto</span> ↗</button>
+        </nav>
+
+        <div class="hero-grid">
+          <div class="hero-copy" data-reveal>
+            <p class="kicker">menos ruido · más dirección</p>
+            <h1>Avanzar no debería alejarte de <em>vivir.</em></h1>
+            <p class="hero-intro">Popups ordena el trabajo de negocios en crecimiento para que el esfuerzo de las personas se convierta en avance, no en más urgencias.</p>
+            <div class="hero-buttons"><button class="button primary js-open-lead" type="button">Contanos tu proyecto <span class="arrow">↗</span></button><a class="button ghost" href="#problema">Conocer la idea <span class="arrow">↓</span></a></div>
+            <p class="hero-note"><i></i> Para negocios que crecieron más rápido que sus procesos.</p>
+          </div>
+          <div class="hero-art" data-reveal data-delay="1" aria-label="Ilustración de señales que se ordenan">
+            <div class="art-panel">
+              <span class="art-label">POPUPS / EN MOVIMIENTO</span><span class="art-asterisk">✳</span><div class="art-orbit"></div>
+              <div class="panel-popup popup-one"><div class="topline"><span class="dots"><i></i><i></i><i></i></span><small>CLARIDAD</small></div><strong>El trabajo empieza a fluir.</strong><div class="meter"><i></i><i></i><i></i></div></div>
+              <div class="panel-popup popup-two"><div class="topline"><span class="dots"><i></i><i></i><i></i></span><small>ORDEN</small></div><strong>Una forma clara<br>de avanzar.</strong><div class="lines"><i></i><i></i><i></i></div></div>
+              <div class="popup-three"><i></i> menos modo incendio</div>
+              <div class="art-title">El orden también puede sentirse <em>liviano.</em></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="tape" aria-hidden="true"><div class="tape-track"><span>menos ruido <b>✦</b> más dirección <b>✦</b> tiempo para vivir <b>✦</b> procesos claros <b>✦</b> equipos autónomos <b>✦</b> menos ruido <b>✦</b> más dirección <b>✦</b> tiempo para vivir <b>✦</b> procesos claros <b>✦</b> equipos autónomos <b>✦</b></span><span>menos ruido <b>✦</b> más dirección <b>✦</b> tiempo para vivir <b>✦</b> procesos claros <b>✦</b> equipos autónomos <b>✦</b> menos ruido <b>✦</b> más dirección <b>✦</b> tiempo para vivir <b>✦</b> procesos claros <b>✦</b> equipos autónomos <b>✦</b></span></div></div>
+
+    <section id="problema" class="section">
+      <div class="container intro-layout">
+        <div class="side-label" data-reveal>El punto de partida</div>
+        <div data-reveal data-delay="1">
+          <p class="statement">No hace falta trabajar más. Hace falta que la forma de trabajar <em>acompañe</em> lo que querés construir.</p>
+          <div class="intro-bottom"><p>En muchos negocios, el trabajo depende de mensajes, memoria, planillas sueltas y decisiones que siempre terminan en la misma persona.</p><p><strong>No es falta de compromiso.</strong> Es una operación que se fue armando sobre la marcha y todavía no tiene la claridad necesaria para crecer.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="como" class="section system">
+      <div class="container system-grid">
+        <div data-reveal><p class="kicker">Así trabaja Popups</p><h2>Convertimos lo cotidiano en un sistema que acompaña.</h2><p class="copy">Partimos de la realidad de cada equipo. Escuchamos cómo se hacen las cosas, identificamos dónde se pierde energía y diseñamos procesos que no necesitan una explicación eterna para funcionar.</p></div>
+        <div class="process-visual" data-reveal data-delay="1">
+          <div class="process-line"></div>
+          <div class="process-row" data-number="01"><div class="process-item"><h3>Entendemos la operación real</h3><p>Miramos la manera en que el trabajo sucede hoy, sin culpas ni recetas genéricas.</p></div></div>
+          <div class="process-row" data-number="02"><div class="process-item"><h3>Hacemos visible el camino</h3><p>Ordenamos roles, tareas, decisiones e información para que todos sepan qué sigue.</p></div></div>
+          <div class="process-row" data-number="03"><div class="process-item"><h3>Sacamos fricción del medio</h3><p>Simplificamos herramientas y pasos innecesarios para que el equipo pueda enfocarse.</p></div></div>
+          <div class="process-row" data-number="04"><div class="process-item"><h3>Lo volvemos parte del día</h3><p>Acompañamos la implementación para que el orden se sostenga, no quede en un documento.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="para-quien" class="section">
+      <div class="container">
+        <div class="audience-top" data-reveal><div><p class="kicker">El negocio correcto para Popups</p><h2>Cuando el negocio funciona, pero el día a día todavía se siente como una carrera.</h2></div><p class="copy">Especialmente negocios de servicios que ya tienen equipo, clientes y ganas de crecer, pero siguen dependiendo demasiado de sus dueños.</p></div>
+        <div class="audience-quote" data-reveal data-delay="1"><p>“Si me desconecto, se frena todo. Quiero crecer, pero no quiero que mi negocio <em>ocupe toda mi vida.</em>”</p><span class="audience-meta"><i></i> Una sensación que Popups conoce bien</span></div>
+      </div>
+    </section>
+
+    <section class="section results">
+      <div class="container">
+        <p class="kicker" data-reveal>Lo que se vuelve posible</p>
+        <div class="result-grid">
+          <article class="result" data-reveal><span class="result-number">01 / FOCO</span><h3>Menos urgencias que absorben el día.</h3><p>Cuando el proceso está claro, el equipo deja de resolver lo mismo una y otra vez.</p></article>
+          <article class="result" data-reveal data-delay="1"><span class="result-number">02 / AUTONOMÍA</span><h3>Más decisiones que no dependen de una sola persona.</h3><p>La información se comparte, los roles se entienden y delegar se vuelve real.</p></article>
+          <article class="result" data-reveal data-delay="2"><span class="result-number">03 / TIEMPO</span><h3>Más espacio para hacer lo que importa.</h3><p>El orden devuelve energía al negocio, pero también a la vida de quienes lo hacen posible.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="contacto" class="contact">
+      <div class="container">
+        <div class="contact-card" data-reveal>
+          <p class="kicker">El próximo paso puede ser más simple</p>
+          <h2>Ordenar el trabajo también es una forma de volver a elegir tu tiempo.</h2>
+          <p>Si tu negocio creció y sentís que la forma de trabajar ya no acompaña, conversemos. No hace falta resolver todo hoy para empezar a avanzar mejor.</p>
+          <button class="button js-open-lead" type="button">Contarnos lo que imaginás <span class="arrow">↗</span></button><br><a class="email" href="mailto:somospopups@gmail.com">Preferís escribirnos: somospopups@gmail.com</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="lead-modal" id="lead-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="lead-title">
+      <div class="modal-backdrop" data-close-lead></div>
+      <div class="lead-dialog" role="document">
+        <button class="modal-close" type="button" aria-label="Cerrar formulario" data-close-lead>×</button>
+        <aside class="modal-aside">
+          <div><p class="kicker">Hablemos de lo que viene</p><h2 id="lead-title">Todo avance grande empieza con una conversación <em>honesta.</em></h2><p class="aside-pulse"><i></i> Te lleva menos de dos minutos</p></div>
+          <p class="aside-quote">“No hace falta tener todo resuelto para empezar a ordenar.”<span>— Popups</span></p>
+        </aside>
+        <div class="lead-form-wrap">
+          <div class="modal-progress-top"><span id="form-step-label">Paso 1 de 4</span><span class="progress-dots" aria-hidden="true"><i class="active"></i><i></i><i></i><i></i></span></div>
+          <form class="lead-form" id="popups-lead-form" name="popups-conversacion" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+            <input type="hidden" name="form-name" value="popups-conversacion">
+            <p class="sr-only"><label>No completar si sos una persona: <input name="bot-field"></label></p>
+
+            <fieldset class="form-step active" data-step="1">
+              <legend>Empecemos por vos.</legend><p class="step-copy">Queremos conocer a la persona y al negocio detrás de esta conversación.</p>
+              <div class="field-grid"><div class="field"><label for="lead-nombre">¿Cómo te llamás? *</label><input id="lead-nombre" name="nombre" type="text" autocomplete="name" placeholder="Tu nombre" required></div><div class="field"><label for="lead-negocio">¿Cómo se llama tu negocio? *</label><input id="lead-negocio" name="negocio" type="text" autocomplete="organization" placeholder="Nombre del negocio" required></div></div>
+              <div class="field"><label for="lead-equipo">¿Cuántas personas forman parte del equipo?</label><select id="lead-equipo" name="tamano_equipo"><option value="">Elegí una opción (si querés)</option><option>Solo yo / todavía no tengo equipo</option><option>De 2 a 5 personas</option><option>De 6 a 15 personas</option><option>De 16 a 40 personas</option><option>Más de 40 personas</option></select></div>
+            </fieldset>
+
+            <fieldset class="form-step" data-step="2">
+              <legend>¿Qué te está moviendo hoy?</legend><p class="step-copy">No hay una respuesta correcta. Elegí lo que más te gustaría destrabar primero.</p>
+              <div class="choice-grid" role="radiogroup" aria-label="Motivo principal"><label class="choice"><input type="radio" name="motivo_principal" value="Ordenar el desorden cotidiano" required><span>Ordenar el desorden cotidiano</span></label><label class="choice"><input type="radio" name="motivo_principal" value="Delegar con más tranquilidad"><span>Delegar sin que todo vuelva a mí</span></label><label class="choice"><input type="radio" name="motivo_principal" value="Preparar una nueva etapa"><span>Preparar una nueva etapa o proyecto</span></label><label class="choice"><input type="radio" name="motivo_principal" value="Recuperar tiempo y energía"><span>Recuperar tiempo y energía</span></label></div>
+            </fieldset>
+
+            <fieldset class="form-step" data-step="3">
+              <legend>Imaginemos lo que sigue.</legend><p class="step-copy">Si el trabajo fluyera con más claridad, ¿qué proyecto, cambio o avance te gustaría hacer posible?</p>
+              <div class="field"><label for="lead-proyecto">Contanos con tus palabras *</label><textarea id="lead-proyecto" name="proyecto_o_idea" placeholder="Por ejemplo: abrir una nueva sede, delegar operaciones, lanzar algo nuevo o simplemente recuperar aire para pensar..." required></textarea></div>
+            </fieldset>
+
+            <fieldset class="form-step" data-step="4">
+              <legend>¿Cómo seguimos?</legend><p class="step-copy">Dejanos una forma de encontrarte y te escribimos para continuar la conversación.</p>
+              <div class="field-grid"><div class="field"><label for="lead-email">Tu email *</label><input id="lead-email" name="email" type="email" autocomplete="email" placeholder="nombre@negocio.com" required></div><div class="field"><label for="lead-whatsapp">Tu WhatsApp</label><input id="lead-whatsapp" name="whatsapp" type="tel" autocomplete="tel" placeholder="+54 ..."></div></div>
+              <div class="field"><label for="lead-contacto">¿Cómo preferís que te contactemos?</label><select id="lead-contacto" name="preferencia_contacto"><option value="Email">Por email</option><option value="WhatsApp">Por WhatsApp</option><option value="Cualquiera de los dos">Cualquiera de los dos</option></select></div>
+            </fieldset>
+
+            <p class="form-error" id="form-error" aria-live="polite"></p>
+            <div class="form-actions"><button class="button back" id="lead-back" type="button" hidden>← Volver</button><button class="button next" id="lead-next" type="button">Continuar <span class="arrow">↗</span></button><button class="button submit" id="lead-submit" type="submit" hidden>Enviar a Popups <span class="arrow">↗</span></button></div>
+            <p class="form-privacy">Usamos esta información solo para entender tu consulta y responderte. También podés escribirnos a <a href="mailto:somospopups@gmail.com">somospopups@gmail.com</a>.</p>
+          </form>
+          <div class="form-success" id="form-success" aria-live="polite"><div class="success-inner"><div class="success-mark">✓</div><h2>Gracias por contarnos.</h2><p id="success-copy">Ya recibimos tu mensaje. Muy pronto vamos a escribirte para seguir pensando ese próximo paso juntos.</p><button class="button" type="button" data-close-lead>Volver a la página</button></div></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+  <footer><div class="container footer"><a class="footer-brand" href="#inicio"><svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="18" fill="#FF5A36"/><path d="M17 14h19c10 0 17 6 17 16s-7 16-17 16h-8v7H17V14Zm11 10v12h7c4 0 6-2 6-6s-2-6-6-6h-7Z" fill="#171615"/><rect x="36" y="33" width="18" height="18" rx="6" fill="#F3EADF"/><path d="M45 37v9M41 42l4-5 4 5" fill="none" stroke="#171615" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Popups</span></a><span class="footer-copy">Menos ruido. Más dirección.</span><a href="mailto:somospopups@gmail.com">somospopups@gmail.com</a></div></footer>
+  <script>
+    (() => {
+      const progress = document.querySelector('.progress');
+      const update = () => { const d=document.documentElement; progress.style.width=((d.scrollTop/(d.scrollHeight-d.clientHeight||1))*100)+'%'; };
+      addEventListener('scroll',update,{passive:true}); update();
+      const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target)}}),{threshold:.12});
+      document.querySelectorAll('[data-reveal]').forEach(el=>observer.observe(el));
+
+      const modal = document.getElementById('lead-modal');
+      const form = document.getElementById('popups-lead-form');
+      const steps = [...form.querySelectorAll('.form-step')];
+      const stepLabel = document.getElementById('form-step-label');
+      const dots = [...document.querySelectorAll('.progress-dots i')];
+      const next = document.getElementById('lead-next');
+      const back = document.getElementById('lead-back');
+      const submit = document.getElementById('lead-submit');
+      const error = document.getElementById('form-error');
+      const success = document.getElementById('form-success');
+      const successCopy = document.getElementById('success-copy');
+      let currentStep = 0;
+      let lastFocused = null;
+
+      const showStep = (index) => {
+        currentStep = index;
+        steps.forEach((step, i) => step.classList.toggle('active', i === currentStep));
+        dots.forEach((dot, i) => dot.classList.toggle('active', i <= currentStep));
+        stepLabel.textContent = `Paso ${currentStep + 1} de ${steps.length}`;
+        back.hidden = currentStep === 0;
+        next.hidden = currentStep === steps.length - 1;
+        submit.hidden = currentStep !== steps.length - 1;
+        error.textContent = '';
+        const focusable = steps[currentStep].querySelector('input, textarea, select');
+        if (focusable) setTimeout(() => focusable.focus(), 90);
+      };
+
+      const openModal = () => {
+        lastFocused = document.activeElement;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+        if (!success.classList.contains('show')) showStep(currentStep);
+      };
+      const closeModal = () => {
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+        if (lastFocused) lastFocused.focus();
+      };
+      document.querySelectorAll('.js-open-lead').forEach(button => button.addEventListener('click', openModal));
+      document.querySelectorAll('[data-close-lead]').forEach(button => button.addEventListener('click', closeModal));
+      document.addEventListener('keydown', event => { if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal(); });
+
+      const validateStep = () => {
+        const fields = [...steps[currentStep].querySelectorAll('input:not([type="hidden"]), textarea, select')];
+        for (const field of fields) {
+          if (!field.checkValidity()) { field.reportValidity(); return false; }
+        }
+        return true;
+      };
+      next.addEventListener('click', () => { if (validateStep()) showStep(currentStep + 1); });
+      back.addEventListener('click', () => showStep(currentStep - 1));
+
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        if (!validateStep()) return;
+        error.textContent = '';
+        submit.disabled = true;
+        submit.innerHTML = 'Enviando...';
+        const data = new FormData(form);
+        fetch('/', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(data).toString() })
+          .then(response => {
+            if (!response.ok) throw new Error('No se pudo enviar');
+            const nombre = form.elements.nombre.value.trim();
+            successCopy.textContent = nombre ? `Gracias, ${nombre}. Ya recibimos tu mensaje y muy pronto vamos a escribirte para seguir pensando ese próximo paso juntos.` : 'Ya recibimos tu mensaje. Muy pronto vamos a escribirte para seguir pensando ese próximo paso juntos.';
+            form.style.display = 'none';
+            success.classList.add('show');
+          })
+          .catch(() => {
+            error.innerHTML = 'No pudimos enviar tu mensaje en este momento. Escribinos directamente a <a href="mailto:somospopups@gmail.com">somospopups@gmail.com</a>.';
+            submit.disabled = false;
+            submit.innerHTML = 'Enviar a Popups <span class="arrow">↗</span>';
+          });
+      });
+    })();
+  </script>
+</body>
+</html>
